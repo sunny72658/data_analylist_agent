@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 Nexus3D — Photorealistic Bespoke 3D Car Experience</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js, OrbitControls, GLTFLoader, DRACOLoader, and GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <!-- Top Luxury Navigation Bar -->
+    <header class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-crown logo-icon"></i>
+            <span class="logo-text">NEXUS<span>3D</span></span>
+        </div>
+
+        <nav class="nav-links">
+            <button class="nav-btn active" id="btn-camera-exterior"><i class="fa-solid fa-car"></i> 360° Studio</button>
+            <button class="nav-btn" id="btn-camera-interior"><i class="fa-solid fa-couch"></i> Interior Cockpit</button>
+            <button class="nav-btn" id="btn-camera-front"><i class="fa-solid fa-crosshairs"></i> Front Grille</button>
+            <button class="nav-btn" id="btn-camera-rear"><i class="fa-solid fa-gauge-high"></i> Rear View</button>
+        </nav>
+
+        <div class="header-actions">
+            <div class="price-tag">
+                <span class="price-label">Bespoke Price</span>
+                <span class="price-value" id="current-total-price">$385,000</span>
+            </div>
+            <button class="btn-primary" id="btn-checkout">
+                <i class="fa-solid fa-gem"></i> Commission Now
+            </button>
+        </div>
+    </header>
+
+    <!-- Main 3D Canvas Viewport -->
+    <div id="webgl-container"></div>
+
+    <!-- Loading Spinner Indicator -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading High-Detail 3D CAD Car Model...</div>
+        <div class="loading-subtext">Applying PBR Studio Shaders & Materials</div>
+    </div>
+
+    <!-- Floating 3D Navigation Guide HUD -->
+    <div class="hud-navigation-guide" id="hud-guide">
+        <div class="hud-item" id="hud-nav-mode"><i class="fa-solid fa-rotate"></i> Drag to 360° Orbit Studio</div>
+        <div class="hud-item"><i class="fa-solid fa-magnifying-glass-plus"></i> Scroll to Zoom</div>
+        <div class="hud-item"><i class="fa-solid fa-arrows-up-down-left-right"></i> Right-click to Pan</div>
+    </div>
+
+    <!-- Mode Badge Notification -->
+    <div class="view-mode-badge" id="view-mode-badge">
+        <i class="fa-solid fa-eye"></i> <span id="view-mode-text">Photorealistic Exterior Mode</span>
+    </div>
+
+    <!-- Left Customizer Controls Drawer -->
+    <aside class="customizer-panel">
+        <div class="panel-header">
+            <h3><i class="fa-solid fa-crown"></i> 3D Studio Customizer</h3>
+            <span class="model-badge">REAL CAD PHOTOREALISTIC MODEL</span>
+        </div>
+
+        <div class="customizer-section">
+            <label class="section-title">Body Paint & Metallic Finish</label>
+            <div class="color-palette" id="paint-selector">
+                <button class="color-btn active" data-color="0xff0000" data-finish="metallic" data-name="Rosso Corsa Red" style="background: linear-gradient(135deg, #ff0000, #990000);"></button>
+                <button class="color-btn" data-color="0x00E5FF" data-finish="metallic" data-name="Cyber Cyan Metallic" style="background: linear-gradient(135deg, #00E5FF, #007799);"></button>
+                <button class="color-btn" data-color="0x111625" data-finish="matte" data-name="Stealth Matte Black" style="background: #111625; border: 1px solid #444;"></button>
+                <button class="color-btn" data-color="0xFFB800" data-finish="metallic" data-name="Liquid Gold" style="background: linear-gradient(135deg, #FFB800, #B38000);"></button>
+                <button class="color-btn" data-color="0xFFFFFF" data-finish="pearl" data-name="Pearl Diamond White" style="background: linear-gradient(135deg, #FFFFFF, #D0D5DD);"></button>
+            </div>
+            <div class="selected-option-name" id="selected-paint-name">Rosso Corsa Red</div>
+        </div>
+
+        <div class="customizer-section">
+            <label class="section-title">Rim Finish Package</label>
+            <div class="option-grid" id="wheels-selector">
+                <button class="option-card active" data-rim="silver" data-price="0">
+                    <i class="fa-solid fa-circle-notch"></i>
+                    <span>Polished Silver</span>
+                    <small>Included</small>
+                </button>
+                <button class="option-card" data-rim="black" data-price="12000">
+                    <i class="fa-solid fa-circle"></i>
+                    <span>Gloss Satin Black</span>
+                    <small>+$12,000</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="customizer-section">
+            <label class="section-title">Interior Cockpit Trim</label>
+            <div class="option-grid" id="interior-selector">
+                <button class="option-card active" data-interior="black" data-price="0">
+                    <i class="fa-solid fa-couch"></i>
+                    <span>Nappa Black Leather</span>
+                    <small>Carbon Fiber Trim</small>
+                </button>
+                <button class="option-card" data-interior="tan" data-price="15000">
+                    <i class="fa-solid fa-feather"></i>
+                    <span>Bespoke Tan Leather</span>
+                    <small>+$15,000</small>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Right AI Sales Concierge Chat Panel -->
+    <aside class="ai-concierge-panel">
+        <div class="concierge-header">
+            <div class="avatar-box">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+                <h4>Spatial AI Sales Concierge</h4>
+                <span class="status-online">Online & Ready to Assist</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-box">
+            <div class="message assistant">
+                👋 Welcome to the **Photorealistic 3D Car Studio**! We are rendering an official high-poly GLTF CAD vehicle with PBR metallic shaders, full interior cockpit, and studio lighting. Click **"Interior Cockpit"** to step inside!
+            </div>
+        </div>
+
+        <div class="suggested-prompts">
+            <button class="prompt-chip" data-prompt="What is the top speed and engine performance?">🏎️ Top Speed?</button>
+            <button class="prompt-chip" data-prompt="Tell me about the interior features and cockpit">🛋️ Interior Cockpit?</button>
+            <button class="prompt-chip" data-prompt="Calculate monthly financing for $385,000">💳 Monthly Payment?</button>
+        </div>
+
+        <div class="chat-input-box">
+            <input type="text" id="chat-input" placeholder="Ask AI Sales Agent about specs, range..." />
+            <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </aside>
+
+    <!-- Hotspot Modal Information Popup -->
+    <div class="hotspot-modal" id="hotspot-modal">
+        <button class="btn-close-modal" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-content">
+            <span class="modal-tag" id="hotspot-category">ENGINEERING</span>
+            <h3 id="hotspot-title">Mid-Rear V8 Twin-Turbo Engine</h3>
+            <p id="hotspot-desc">3.9-liter twin-turbo V8 engine generating 710 horsepower, accelerating 0-60 mph in 2.9 seconds.</p>
+            <div class="modal-spec-grid" id="hotspot-specs">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Commission Checkout Modal Window -->
+    <div class="checkout-overlay" id="checkout-overlay">
+        <div class="checkout-modal">
+            <button class="btn-close-modal" id="btn-close-checkout"><i class="fa-solid fa-xmark"></i></button>
+            <h2>⚡ Order Summary & Configuration</h2>
+            <p class="subtitle">Your customized 3D CAD vehicle configuration is ready for order.</p>
+
+            <div class="summary-details">
+                <div class="summary-row">
+                    <span>Base Vehicle (3D Supercar Edition)</span>
+                    <span>$385,000</span>
+                </div>
+                <div class="summary-row">
+                    <span id="sum-paint-name">Paintwork: Rosso Corsa Red</span>
+                    <span>Included</span>
+                </div>
+                <div class="summary-row">
+                    <span id="sum-wheels-name">Rims: Polished Silver</span>
+                    <span id="sum-wheels-price">$0</span>
+                </div>
+                <div class="summary-row">
+                    <span id="sum-interior-name">Interior: Nappa Black Leather</span>
+                    <span id="sum-interior-price">$0</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total Vehicle Price</span>
+                    <span id="sum-total-price">$385,000</span>
+                </div>
+            </div>
+
+            <div class="checkout-actions">
+                <button class="btn-secondary" id="btn-download-spec"><i class="fa-solid fa-file-pdf"></i> Download Spec Sheet</button>
+                <button class="btn-primary" id="btn-confirm-order"><i class="fa-solid fa-bolt"></i> Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Engine Scripts -->
+    <script src="spatial_engine.js"></script>
+    <script src="ai_sales_concierge.js"></script>
+</body>
+</html>
